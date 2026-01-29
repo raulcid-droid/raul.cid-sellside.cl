@@ -1,0 +1,10 @@
+google-generativeai
+beautifulsoup4
+
+
+
+
+
+
+
+
