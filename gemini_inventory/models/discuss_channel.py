@@ -22,7 +22,7 @@ class DiscussChannel(models.Model):
         
         if self.name == 'Gemini Agente de inventario' and message.body:
             text = self._extract_text(message.body)
-            if text and not message.author_id.share:
+            # if text and not message.author_id.share:
                 try:
                     response = self._generate_response(text)
                     self.message_post(body=response, message_type='comment')
