@@ -20,7 +20,7 @@ class DiscussChannel(models.Model):
     def _message_post_after_hook(self, message, msg_vals):
         result = super()._message_post_after_hook(message, msg_vals)
         
-        if self.name == 'Gemini Inventory Agent' and message.body:
+        if self.name == 'Gemini Agente de inventario' and message.body:
             text = self._extract_text(message.body)
             if text and not message.author_id.share:
                 try:
