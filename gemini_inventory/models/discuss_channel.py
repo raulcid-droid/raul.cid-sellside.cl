@@ -8,53 +8,42 @@ _logger = logging.getLogger(__name__)
 try:
     import google.generativeai as genai
 except ImportError:
-    _logger.warning("Google Generative AI library not found. Install it with pip install google-generativeai")
+    _logger.warning("Libreria google-generativeai no encontrada")
     genai = None
 
 class DiscussChannel(models.Model):
-    _inherit = 'mail.channel'
+    _inherit = 'discuss.channel'
 
     def _message_post_after_hook(self, message, msg_vals):
         super(DiscussChannel, self)._message_post_after_hook(message, msg_vals)
         
-        # El bot escucha si el canal se llama exactamente así
+        # Filtro por nombre de canal y contenido
         if self.name == 'Gemini Agente de inventario':
-            text = self._extract_text(message.body)
+            body = message.body or ''
+            text = re.sub('<[^>]*>', '', body).strip()
             
-            # Comentamos la restricción de autor para que te responda a ti (Admin)
-            if text: # and not message.author_id.share:
+            if text:
                 self._generate_response(text)
 
-    def _extract_text(self, html):
-        if not html:
-            return ""
-        return re.sub('<[^>]*>', '', html).strip()
-
     def _generate_response(self, prompt):
-        if not genai:
-            self.message_post(body="Error: Librería Gemini no instalada.")
-            return
-
+        # API Key configurada en Parametros del Sistema
         api_key = self.env['ir.config_parameter'].sudo().get_param('gemini_inventory.api_key')
-        if not api_key:
-            self.message_post(body="Error: API Key no configurada en Parámetros del Sistema.")
+        
+        if not api_key or not genai:
             return
 
         try:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-pro')
             
-            # Buscamos productos para darle contexto a la IA
+            # Contexto de inventario (limitado a 10 productos para velocidad)
             products = self.env['product.product'].search([('type', '=', 'product')], limit=10)
-            stock_info = ""
-            for p in products:
-                stock_info += f"- {p.name}: {p.qty_available} unidades\n"
+            stock_info = "Stock actual:\n" + "\n".join([f"- {p.name}: {p.qty_available}" for p in products])
 
-            full_prompt = f"Eres un asistente de inventario en Odoo. Stock actual:\n{stock_info}\n\nUsuario dice: {prompt}"
+            full_prompt = f"Eres un asistente de inventario. {stock_info}\n\nPregunta: {prompt}"
             response = model.generate_content(full_prompt)
             
             if response and response.text:
-                self.message_post(body=response.text)
+                self.message_post(body=response.text, message_type='comment', subtype_xmlid='mail.mt_comment')
         except Exception as e:
-            _logger.error("Error en Gemini: %s", str(e))
-            self.message_post(body=f"Error técnico: {str(e)}")
+            _logger.error("Error Gemini: %s", str(e))
