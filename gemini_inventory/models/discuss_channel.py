@@ -35,7 +35,7 @@ class DiscussChannel(models.Model):
 
         try:
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.0-flash-exp')
             
             # TAREA 1.1: El bot consulta el inventario real
             products = self.env['product.product'].search([('type', '=', 'product')], limit=15)
