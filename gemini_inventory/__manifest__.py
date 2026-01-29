@@ -7,7 +7,7 @@
     'depends': ['base', 'mail', 'stock', 'product'],
     'data': [
         'data/discuss_channel_data.xml',
-        'views/res_config_settings_views.xml',
+        
     ],
     'installable': True,
     'application': False,
