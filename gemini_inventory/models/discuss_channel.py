@@ -26,7 +26,7 @@ class DiscussChannel(models.Model):
         try:
             import google.generativeai as genai
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.0-flash')
             products = self.env['product.product'].search([('type', '=', 'product')], limit=10)
             stock_info = "Stock actual:\n" + "\n".join([f"- {p.name}: {p.qty_available}" for p in products])
             contexto = f"Eres un asistente de inventario de Odoo. Contexto:\n{stock_info}\n\nPregunta: {prompt}"
